@@ -1,0 +1,27 @@
+pipeline{
+    agent any
+    stages{
+        stage('pull'){
+            steps{
+                git branch: 'main', url: 'https://github.com/rushidholecom/project-titan-eks-devops-platform.git'
+            }
+        }
+
+        stage('Run'){
+            steps{
+                timeout(time: 15, unit: 'MINUTES'){
+                    sh '''terraform init
+                          terrafrom plan'''
+                }
+            }
+        }
+
+        stage('DEPLOY'){
+            steps{
+                timeout(time: 15, unit: 'MINUTES'){
+                    sh 'terraform apply --auto-approve'
+                }
+            }
+        }
+    }
+}
