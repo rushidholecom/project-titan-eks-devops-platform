@@ -26,5 +26,19 @@ pipeline{
                 }
             }
         }
+
+        stage('APPOVAL'){
+            steps{
+                input 'wait for approval'
+            }
+        }
+
+        stage('DESTROY'){
+            steps{
+                sh '''cd terraform
+                      terraform destroy'''    
+            }
+        }
+        
     }
 }
