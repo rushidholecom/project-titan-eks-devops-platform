@@ -10,7 +10,7 @@ pipeline{
         stage('RUN'){
             steps{
                 sh '''cd pipeline
-                      terraform destroy'''
+                      terraform destroy --auto-approve'''
             }
         }
     }
