@@ -19,15 +19,15 @@ variable "private_database_subnet_cidr" {
   default = "10.10.3.0/24"
 }
 
-variable "private-availability-zone" {
+variable "private_availability_zone" {
   default = "eu-west-2a"
 }
 
-variable "private-database-availability-zone" {
-  default = ["eu-west-2b", "eu-west-2c"]
+variable "private_database_availability_zone" {
+  default = "eu-west-2b"
 }
 
-variable "public-availability-zone" {
+variable "public_availability_zone" {
   default = "eu-west-2c"
 }
 
