@@ -1,7 +1,5 @@
 
-variable "cidr_block" {
-    default = "10.10.10.0/16"
-}
+variable "cidr_block" {}
 
 variable "vpc_name" {
   default = "titan-vpc"
