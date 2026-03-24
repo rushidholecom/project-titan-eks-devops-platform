@@ -30,3 +30,11 @@ variable "private-database-availability-zone" {
 variable "public-availability-zone" {
   default = "eu-west-2c"
 }
+
+output "vpc_id" {
+  value = aws_vpc.titan_vpc.id
+}
+
+output "private_db_subnet" {
+ value = aws_subnet.private_subnet-database.id  
+}
