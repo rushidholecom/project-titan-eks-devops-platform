@@ -6,7 +6,10 @@ module "vpc" {
   source = "./module/vpc"
   cidr_block = "10.10.0.0/16"
   project = "project-titan"
-  private_database_availability_zone = "eu-west-2a"
+  private_database_availability_zone = [
+    "eu-west-2a",
+    "eu-west-2b"
+  ]
 }
 
 module "rds" {
