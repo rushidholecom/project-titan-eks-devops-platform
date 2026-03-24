@@ -1,4 +1,4 @@
-resource "aws_db_instance" "titan-rds" {
+resource "aws_db_instance" "titan_rds" {
  allocated_storage = 10
  db_name = "${var.db_name}"
  engine = "mariadb"

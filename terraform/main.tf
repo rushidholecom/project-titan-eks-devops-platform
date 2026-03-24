@@ -13,4 +13,5 @@ module "rds" {
   db_name = "titan-db"
   username = "rushi"
   password = "redhat"
+  depends_on = [ module.vpc ]
 }
