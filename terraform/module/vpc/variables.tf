@@ -16,3 +16,15 @@ variable "public_subnet_cidr" {
 variable "private_subnet_cidr" {
   default = "10.10.18.0/24"
 }
+
+variable "private-availability-zone" {
+  default = "eu-west-2a"
+}
+
+variable "private-database-availability-zone" {
+  default = "eu-west-2b"
+}
+
+variable "public-availability-zone" {
+  default = "eu-west-2c"
+}
