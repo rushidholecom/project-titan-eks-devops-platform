@@ -10,7 +10,7 @@ module "vpc" {
 
 module "rds" {
   source = "./module/rds"
-  db_name = "titan-db"
+  db_name = "titan_db"
   username = "rushi"
   password = "redhat"
   vpc_id = module.vpc.vpc_id

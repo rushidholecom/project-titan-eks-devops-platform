@@ -7,6 +7,7 @@ resource "aws_db_instance" "titan_rds" {
  instance_class = "db.t3.micro"
  username = var.username
  password = var.password
+ availability_zone = "eu-west-2c"
  vpc_security_group_ids = [aws_security_group.mariadb_security_group.id]
  timeouts {
     create = "3h"
@@ -38,4 +39,7 @@ resource "aws_security_group" "mariadb_security_group" {
 resource "aws_db_subnet_group" "mariadb_subnet_group" {
   name = "db-subnet-group"
   subnet_ids = [var.private_db_subnet_id]
+  tags = {
+    Name = "db-subnet-group"
+  }
 }
