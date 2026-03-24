@@ -1,0 +1,17 @@
+pipeline{
+    agent any
+    stages{
+        stage('PULL'){
+            steps{
+                git branch: 'main', url: 'https://github.com/rushidholecom/project-titan-eks-devops-platform.git'
+            }
+        }
+
+        stage('RUN'){
+            steps{
+                sh '''cd pipeline
+                      terraform destroy'''
+            }
+        }
+    }
+}
