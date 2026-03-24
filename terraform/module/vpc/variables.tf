@@ -10,15 +10,15 @@ variable "project" {
 }
 
 variable "public_subnet_cidr" {
-  default = "10.10.12.0/24"
+  default = "10.10.1.0/24"
 }
 
 variable "private_subnet_cidr" {
-  default = "10.10.18.0/24"
+  default = "10.10.2.0/24"
 }
 
 variable "private_database_subnet_cidr" {
-  default = "10.10.22.0/24"
+  default = "10.10.3.0/24"
 }
 
 variable "private-availability-zone" {
