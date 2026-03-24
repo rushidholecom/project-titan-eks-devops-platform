@@ -42,5 +42,4 @@ resource "aws_db_subnet_group" "mariadb_subnet_group" {
   tags = {
     Name = "db-subnet-group"
   }
-  
 }
