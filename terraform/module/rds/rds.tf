@@ -38,7 +38,7 @@ resource "aws_security_group" "mariadb_security_group" {
 
 resource "aws_db_subnet_group" "mariadb_subnet_group" {
   name = "db-subnet-group"
-  subnet_ids = [var.private_db_subnet_ids]
+  subnet_ids = [var.private_db_subnet_ids, var.private_subnet]
   tags = {
     Name = "db-subnet-group"
   }
