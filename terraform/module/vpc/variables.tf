@@ -23,9 +23,7 @@ variable "private_availability_zone" {
   default = "eu-west-2a"
 }
 
-variable "private_database_availability_zone" {
-  
-}
+variable "private_database_availability_zone" {}
 
 variable "public_availability_zone" {
   default = "eu-west-2c"
