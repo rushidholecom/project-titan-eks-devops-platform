@@ -3,6 +3,6 @@ provider "aws" {
 }
 
 module "vpc" {
-  source = "./terraform/module/vpc"
+  source = "./module/vpc"
   cidr_block = "10.10.10.0/16"
 }
