@@ -10,8 +10,9 @@ pipeline{
         stage('Run'){
             steps{
                 timeout(time: 15, unit: 'MINUTES'){
-                    sh '''terraform init
-                          terrafrom plan'''
+                    sh '''cd terraform
+                          terraform init
+                          terraform plan'''
                 }
             }
         }
@@ -19,7 +20,9 @@ pipeline{
         stage('DEPLOY'){
             steps{
                 timeout(time: 15, unit: 'MINUTES'){
-                    sh 'terraform apply --auto-approve'
+                    sh '''cd terraform
+                          terraform apply --auto-approve
+                          '''
                 }
             }
         }
