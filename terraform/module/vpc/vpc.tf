@@ -31,7 +31,7 @@ resource "aws_subnet" "private_subnet" {
 
 resource "aws_subnet" "private_subnet-database" {
   vpc_id = "${aws_vpc.titan_vpc.id}"
-  cidr_block = var.private_subnet_cidr
+  cidr_block = var.private-database-availability-zone
   map_public_ip_on_launch = false
   availability_zone = var.private-database-availability-zone
   tags = {
