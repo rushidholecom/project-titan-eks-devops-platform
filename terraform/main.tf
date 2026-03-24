@@ -14,6 +14,6 @@ module "rds" {
   username = "rushi"
   password = "redhat"
   vpc_id = module.vpc.vpc_id
-  private_db_subnet = module.vpc.private_db_subnet
+  private_db_subnet_id = module.vpc.private_db_subnet
   depends_on = [ module.vpc ]
 }
