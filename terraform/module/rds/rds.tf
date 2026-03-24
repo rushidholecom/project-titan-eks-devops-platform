@@ -7,7 +7,7 @@ resource "aws_db_instance" "titan_rds" {
  instance_class = "db.t3.micro"
  username = var.username
  password = var.password
- vpc_security_group_ids = [aws_security_group.mariadb_security_group]
+ vpc_security_group_ids = [aws_security_group.mariadb_security_group.id]
  timeouts {
     create = "3h"
     delete = "3h"
