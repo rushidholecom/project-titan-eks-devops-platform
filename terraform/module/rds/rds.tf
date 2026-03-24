@@ -11,7 +11,7 @@ resource "aws_db_instance" "titan_rds" {
 
 resource "aws_security_group" "mariadb_security_group" {
   name = "mariadb_security_group"
-  vpc_id = var.vpc_id.vpv_id
+  vpc_id = var.vpc_id
   description = "Allow Mariadb access"
 
   ingress {
