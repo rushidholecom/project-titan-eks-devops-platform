@@ -33,6 +33,6 @@ output "vpc_id" {
   value = aws_vpc.titan_vpc.id
 }
 
-output "private_db_subnet" {
+output "private_db_subnet_ids" {
  value = aws_subnet.private_subnet-database.id  
 }
