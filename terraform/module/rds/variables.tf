@@ -7,5 +7,3 @@ variable "password" {}
 variable "vpc_id" {}
 
 variable "private_db_subnet_ids" {}
-
-variable "private_subnet" {}
