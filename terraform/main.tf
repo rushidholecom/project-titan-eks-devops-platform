@@ -18,3 +18,9 @@ module "rds" {
   private_db_subnet_ids = [module.vpc.private_db_subnet_ids, module.vpc.private_subnet]
   depends_on = [ module.vpc ]
 }
+
+module "eks" {
+  source = "./module/eks"
+  project_name = module.vpc
+  subnet_ids = module.vpc.private_subnet
+}
