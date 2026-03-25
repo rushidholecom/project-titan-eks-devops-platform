@@ -23,4 +23,8 @@ module "eks" {
   source = "./module/eks"
   project_name = module.vpc
   subnet_ids = module.vpc.private_subnet
+  desired_size = 2
+  max_size = 2
+  min_size = 1
+  
 }
