@@ -7,7 +7,7 @@ resource "aws_db_instance" "titan_rds" {
  instance_class = "db.t3.micro"
  username = var.username
  password = var.password
-  #availability_zone = "eu-west-2c"
+ availability_zone = ["eu-west-2b", "eu-west-2c" ]
  db_subnet_group_name = aws_db_subnet_group.mariadb_subnet_group.name
  vpc_security_group_ids = [aws_security_group.mariadb_security_group.id]
  timeouts {
