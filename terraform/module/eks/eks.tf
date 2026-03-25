@@ -31,7 +31,7 @@ resource "aws_eks_cluster" "titan_eks" {
   name = "${var.project_name}-eks"
   role_arn = aws_iam_role.cluster_role.arn
   vpc_config {
-    subnet_ids =  var.subnet_ids.ids
+    subnet_ids =  var.subnet_ids
   }
   depends_on = [ aws_iam_policy_attachment.cluster_policy_attachment ]
   timeouts {
@@ -82,10 +82,10 @@ resource "aws_iam_policy_attachment" "node_policy_ec2" {
 }
 
 resource "aws_eks_node_group" "my_node_group" {
-  cluster_name    = aws_eks_cluster.my_cluster.name
+  cluster_name    = aws_eks_cluster.titan_eks.name
   node_group_name = "my_node_group"
-  node_role_arn   = aws_iam_role.node_role1.arn
-  subnet_ids      = data.aws_subnets.subnet.ids
+  node_role_arn   = aws_iam_role.node_role.arn
+  subnet_ids      = var.subnet_ids
   instance_types = ["t3.small"]
 
   scaling_config {
