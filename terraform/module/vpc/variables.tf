@@ -8,15 +8,15 @@ variable "vpc_name" {
 variable "project" {}
 
 variable "public_subnet_cidr" {
-  default = "10.10.1.0/24"
+  default = "198.16.0.0/20"
 }
 
 variable "private_subnet_cidr" {
-  default = "10.10.2.0/24"
+  default = "198.16.16.0/20"
 }
 
 variable "private_database_subnet_cidr" {
-  default = "10.10.3.0/24"
+  default = "198.16.32.0/20"
 }
 
 variable "private_availability_zone" {
