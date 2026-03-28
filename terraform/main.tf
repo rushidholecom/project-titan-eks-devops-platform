@@ -24,7 +24,7 @@ module "rds" {
 module "eks" {
   source = "./module/eks"
   project_name = "project-titan"
-  subnet_ids = [module.vpc.private_subnet]
+  subnet_ids = [module.vpc.private_subnet, module.vpc.private_db_subnet_ids]
   desired_size = 2
   max_size = 2
   min_size = 1
