@@ -23,7 +23,7 @@ resource "aws_iam_role" "cluster_role" {
 resource "aws_iam_policy_attachment" "cluster_policy_attachment" {
   name = "cluster_policy_attachment"
   roles = [aws_iam_role.cluster_role.name]
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   depends_on = [ aws_iam_role.cluster_role ]
 }
 
