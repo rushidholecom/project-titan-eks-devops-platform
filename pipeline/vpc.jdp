@@ -17,6 +17,12 @@ pipeline{
             }
         }
 
+        stage('APPOVAL'){
+            steps{
+                input 'wait for approval'
+            }
+        }
+
         stage('DEPLOY'){
             steps{
                 timeout(time: 15, unit: 'MINUTES'){
