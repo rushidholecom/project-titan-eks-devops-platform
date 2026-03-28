@@ -1,14 +1,14 @@
 provider "aws" {
-  region = "eu-west-2"
+  region = "ap-south-1"
 }
 
 module "vpc" {
   source = "./module/vpc"
   cidr_block = "198.16.0.0/16"
   project = "project-titan"
-  private_database_availability_zone = "eu-west-2b"
-  private_availability_zone = "eu-west-2a"
-  public_availability_zone = "eu-west-2c"
+  private_database_availability_zone = "ap-south-1b"
+  private_availability_zone = "ap-south-1a"
+  public_availability_zone = "ap-south-1c"
 }
 
 module "rds" {
