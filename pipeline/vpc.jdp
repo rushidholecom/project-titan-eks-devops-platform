@@ -33,7 +33,7 @@ pipeline{
             }
         }
 
-        stage('APPOVAL'){
+        stage('APPOVALS'){
             steps{
                 input 'wait for approval'
             }
