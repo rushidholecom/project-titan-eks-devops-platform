@@ -10,7 +10,7 @@ resource "aws_subnet" "public_subnet" {
   vpc_id = "${aws_vpc.titan_vpc.id}"
   cidr_block = var.public_subnet_cidr
   availability_zone = var.public_availability_zone
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   tags = {
     Name = "${var.project}-public-subnet"
   }
@@ -24,7 +24,7 @@ resource "aws_subnet" "private_subnet" {
   map_public_ip_on_launch = false
   availability_zone = var.private_availability_zone
   tags = {
-    Name = "${var.project}-public-subnet"
+    Name = "${var.project}-private-subnet"
   }
   depends_on = [ aws_vpc.titan_vpc ]
 }
@@ -35,7 +35,7 @@ resource "aws_subnet" "private_subnet_database" {
   map_public_ip_on_launch = false
   availability_zone = var.private_database_availability_zone
   tags = {
-    Name = "${var.project}-private-subnet"
+    Name = "${var.project}-private-database-subnet"
   }
   depends_on = [ aws_vpc.titan_vpc ]
 }
