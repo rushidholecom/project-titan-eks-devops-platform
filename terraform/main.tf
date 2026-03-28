@@ -17,14 +17,14 @@ module "rds" {
   username = "rushi"
   password = "redhat1234"
   vpc_id = module.vpc.vpc_id
-  private_db_subnet_ids = [module.vpc.private_db_subnet_ids, module.vpc.private_subnet]
+  private_db_subnet_ids = [module.vpc.private_db_subnet_ids, module.vpc.private_subnet ]
   depends_on = [ module.vpc ]
 }
 
 module "eks" {
   source = "./module/eks"
   project_name = "project-titan"
-  subnet_ids = [module.vpc.private_subnet, module.vpc.private_db_subnet_ids]
+  subnet_ids = [module.vpc.private_subnet]
   desired_size = 2
   max_size = 2
   min_size = 1
