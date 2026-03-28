@@ -63,21 +63,21 @@ resource "aws_iam_role" "node_role" {
 }
 
 resource "aws_iam_policy_attachment" "node_policy_attachment" {
-  name = "cluste_policy_attachment"
+  name = "cluste_policy_attachment_cni"
   roles = [aws_iam_role.node_role.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
   depends_on = [ aws_iam_role.node_role ]
 }
 
 resource "aws_iam_policy_attachment" "node_policy_wnp" {
-  name = "cluste_policy_attachment"
+  name = "cluste_policy_attachment_wnp"
   roles = [aws_iam_role.node_role.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy" 
   depends_on = [ aws_iam_role.node_role ]
 }
 
 resource "aws_iam_policy_attachment" "node_policy_ec2" {
-  name = "cluste_policy_attachment"
+  name = "cluste_policy_attachment_ec2"
   roles = [aws_iam_role.node_role.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess" 
   depends_on = [ aws_iam_role.node_role ]
