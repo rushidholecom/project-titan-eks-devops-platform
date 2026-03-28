@@ -33,7 +33,8 @@ resource "aws_eks_cluster" "titan_eks" {
   vpc_config {
     subnet_ids =  var.subnet_ids
   }
-  depends_on = [ aws_iam_policy_attachment.cluster_policy_attachment ]
+  depends_on = [ aws_iam_policy_attachment.cluster_policy_attachment, 
+                 aws_iam_role.cluster_role ]
   timeouts {
     create = "20m"
   }
