@@ -83,6 +83,13 @@ resource "aws_iam_policy_attachment" "node_policy_ec2" {
   depends_on = [ aws_iam_role.node_role ]
 }
 
+resource "aws_iam_policy_attachment" "node_policy_ecr" {
+  name = "cluster_policy_attachment_ecr"
+  roles = [aws_iam_role.node_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  depends_on = [ aws_iam_role.node_role ]
+}
+
 resource "aws_eks_node_group" "my_node_group" {
   cluster_name    = aws_eks_cluster.titan_eks.name
   node_group_name = "my_node_group"
