@@ -19,15 +19,11 @@ variable "private_database_subnet_cidr" {
   default = "198.16.32.0/20"
 }
 
-variable "private_availability_zone" {
-  default = "eu-west-2a"
-}
+variable "private_availability_zone" {}
 
 variable "private_database_availability_zone" {}
 
-variable "public_availability_zone" {
-  default = "eu-west-2c"
-}
+variable "public_availability_zone" {}
 
 output "vpc_id" {
   value = aws_vpc.titan_vpc.id

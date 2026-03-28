@@ -7,6 +7,8 @@ module "vpc" {
   cidr_block = "198.16.0.0/16"
   project = "project-titan"
   private_database_availability_zone = "eu-west-2b"
+  private_availability_zone = "eu-west-2a"
+  public_availability_zone = "eu-west-2c"
 }
 
 module "rds" {
@@ -27,5 +29,4 @@ module "eks" {
   max_size = 2
   min_size = 1
   depends_on = [ module.vpc ]
-
 }
