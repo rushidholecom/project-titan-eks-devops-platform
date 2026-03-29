@@ -33,7 +33,7 @@ resource "aws_eks_cluster" "titan_eks" {
   depends_on = [ aws_iam_policy_attachment.cluster_policy_attachment, 
                  aws_iam_role.cluster_role ]
   timeouts {
-    create = "40m"
+    create = "80m"
   }
 }
 
@@ -116,6 +116,6 @@ resource "aws_eks_node_group" "my_node_group" {
    aws_iam_policy_attachment.node_policy_ecr
   ]
   timeouts {
-    create = "40m"
+    create = "80m"
   }
 }
