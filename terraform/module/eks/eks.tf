@@ -112,7 +112,8 @@ resource "aws_eks_node_group" "my_node_group" {
   depends_on = [
    aws_iam_policy_attachment.node_policy_attachment,
    aws_iam_policy_attachment.node_policy_wnp,
-   aws_iam_policy_attachment.node_policy_ec2
+   aws_iam_policy_attachment.node_policy_ec2,
+   aws_iam_policy_attachment.node_policy_ecr
   ]
   timeouts {
     create = "40m"
