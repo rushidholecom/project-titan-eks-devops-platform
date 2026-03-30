@@ -9,6 +9,9 @@ module "vpc" {
   private_database_availability_zone = var.private_database_availability_zone
   private_availability_zone = var.private_availability_zone
   public_availability_zone = var.public_availability_zone
+  public_subnet_cidr = var.public_subnet_cidr
+  private_subnet_cidr = var.private_subnet_cidr
+  private_database_subnet_cidr = var.private_database_subnet_cidr
 }
 
 module "rds" {
