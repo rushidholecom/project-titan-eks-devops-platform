@@ -1,21 +1,21 @@
 provider "aws" {
-  region = "eu-west-2"
+  
 }
 
 module "vpc" {
   source = "./module/vpc"
-  cidr_block = "198.16.0.0/16"
-  project = "project-titan"
-  private_database_availability_zone = "eu-west-2b"
-  private_availability_zone = "eu-west-2a"
-  public_availability_zone = "eu-west-2c"
+  cidr_block = var.cidr_block
+  project = var.project_name
+  private_database_availability_zone = var.private_database_availability_zone
+  private_availability_zone = var.private_availability_zone
+  public_availability_zone = var.public_availability_zone
 }
 
 module "rds" {
   source = "./module/rds"
-  db_name = "titan_db"
-  username = "rushi"
-  password = "redhat1234"
+  db_name = var.db_name
+  username = var.username
+  password = var.password
   vpc_id = module.vpc.vpc_id
   private_db_subnet_ids = [module.vpc.private_db_subnet_ids, module.vpc.private_subnet ]
   private_subnet = [module.vpc.private_subnet]
@@ -24,10 +24,10 @@ module "rds" {
 
 module "eks" {
   source = "./module/eks"
-  project_name = "project-titan"
+  project_name = var.project_name
   subnet_ids = [module.vpc.private_subnet, module.vpc.private_db_subnet_ids]
-  desired_size = 2
-  max_size = 2
-  min_size = 1
+  desired_size = var.desired_size
+  max_size = var.max_size
+  min_size = var.min_size
   depends_on = [ module.vpc ]
 }

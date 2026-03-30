@@ -1,0 +1,23 @@
+region = "eu-west-2"
+
+#VPC
+
+cidr_block = "198.16.0.0/16"
+  project = "project-titan"
+  private_database_availability_zone = "eu-west-2b"
+  private_availability_zone = "eu-west-2a"
+  public_availability_zone = "eu-west-2c"
+
+
+#RDS
+
+db_name = "titan_db"
+  username = "rushi"
+  password = "redhat1234"
+
+#EKS
+
+desired_size = 2
+  max_size = 2
+  min_size = 1
+  project_name = "project-titan"

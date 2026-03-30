@@ -12,7 +12,7 @@ pipeline{
                 timeout(time: 40, unit: 'MINUTES'){
                     sh '''cd terraform
                           terraform init
-                          terraform plan'''
+                          terraform plan -var-file=VARS/dev.tfvars'''
                 }
             }
         }
@@ -21,7 +21,7 @@ pipeline{
             steps{
                 timeout(time: 40, unit: 'MINUTES'){
                     sh '''cd terraform
-                          terraform apply --auto-approve
+                          terraform apply --auto-approve -var-file=VARS/dev.tfvars
                           '''
                 }
             }
