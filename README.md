@@ -24,7 +24,7 @@ The application is based on the EasyCRUD project (Node.js + Spring Boot) and is 
     ┌─────────────────────┼─────────────────────┐
     │                     │                     │
 ┌──────▼──────┐ ┌──────▼──────┐ ┌────────▼───────┐
-│ Frontend Pod│ │ Backend Pod │ │ HPA Autoscale│
+│ Frontend Pod│ │ Backend Pod │ │ HPA Autoscale   │
 │ (Node/React)│ │ (SpringBoot)│ │ │
 └─────────────┘ └──────┬──────┘ └────────────────┘
 │
