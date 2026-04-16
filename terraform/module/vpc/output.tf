@@ -3,9 +3,13 @@ output "vpc_id" {
 }
 
 output "private_db_subnet_ids" {
- value = aws_subnet.private_subnet_database.id 
+ value = [aws_subnet.private_subnet_database.id,aws_subnet.private_subnet_database.id]
 }
 
 output "private_subnet" {
-  value = aws_subnet.private_subnet.id
+  value = [aws_subnet.private_subnet.id,aws_subnet.private_subnet_database.id]
+}
+
+output "private_subnet_vpc" {
+  value = [aws_subnet.private_subnet.id,aws_subnet.private_subnet_database.id]
 }

@@ -10,8 +10,7 @@ region = "eu-west-2"
   public_subnet_cidr = "198.16.0.0/20"
   private_subnet_cidr = "198.16.16.0/20"
   private_database_subnet_cidr = "198.32.16.0/20"
-  private_db_subnet_ids = ["var.private_db_subnet_ids"] 
-  private_subnet = "var.private_subnet"
+  private_subnet_vpc = ["var.private_subnet", "var.private_database_subnet"]
 
 #RDS
 

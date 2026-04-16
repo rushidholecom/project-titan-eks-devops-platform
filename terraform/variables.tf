@@ -84,3 +84,6 @@ variable "region" {
 # variable "private_subnet" {
   
 # }
+variable "private_subnet_vpc" {
+  type = list(string)
+}
