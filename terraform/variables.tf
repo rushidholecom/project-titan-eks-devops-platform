@@ -61,18 +61,26 @@ variable "private_database_availability_zone" {}
 
 variable "public_availability_zone" {}
 
-output "vpc_id" {
-  value = aws_vpc.titan_vpc.id
-}
+# output "vpc_id" {
+#   value = aws_vpc.titan_vpc.id
+# }
 
-output "private_db_subnet_ids" {
- value = aws_subnet.private_database_subnet.id
-}
+# output "private_db_subnet_ids" {
+#  value = aws_subnet.private_database_subnet.id
+# }
 
-output "private_subnet" {
-  value = aws_subnet.private_subnet.id
-}
+# output "private_subnet" {
+#   value = aws_subnet.private_subnet.id
+# }
 
 variable "region" {
+  
+}
+
+variable "private_db_subnet_ids" {
+  
+}
+
+variable "private_subnet" {
   
 }
