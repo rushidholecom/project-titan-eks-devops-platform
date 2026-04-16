@@ -77,10 +77,10 @@ variable "region" {
   
 }
 
-variable "private_db_subnet_ids" {
+# variable "private_db_subnet_ids" {
   
-}
+# }
 
-variable "private_subnet" {
+# variable "private_subnet" {
   
-}
+# }
