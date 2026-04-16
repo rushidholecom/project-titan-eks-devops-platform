@@ -66,7 +66,7 @@ output "vpc_id" {
 }
 
 output "private_db_subnet_ids" {
- value = aws_subnet.private_subnet_database.id 
+ value = aws_subnet.private_database_subnet.id
 }
 
 output "private_subnet" {

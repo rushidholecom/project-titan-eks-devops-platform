@@ -10,7 +10,8 @@ region = "eu-west-2"
   public_subnet_cidr = "198.16.0.0/20"
   private_subnet_cidr = "198.16.16.0/20"
   private_database_subnet_cidr = "198.32.16.0/20"
-
+  private_db_subnet_ids = ["${aws_subnet.private_database_subnet.id}"]  
+  private_subnet = "${aws_subnet.private_subnet.id}"
 
 #RDS
 
