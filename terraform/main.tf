@@ -20,15 +20,15 @@ module "rds" {
   username = var.username
   password = var.password
   vpc_id = module.vpc.vpc_id
-  private_db_subnet_ids = [module.vpc.private_db_subnet_ids, module.vpc.private_subnet ]
-  private_subnet = [module.vpc.private_subnet]
+  private_db_subnet_ids = module.vpc.private_db_subnet_ids
+  private_subnet = module.vpc.private_subnet
   depends_on = [ module.vpc ]
 }
 
 module "eks" {
   source = "./module/eks"
   project_name = var.project_name
-  subnet_ids = [module.vpc.private_subnet, module.vpc.private_db_subnet_ids]
+  subnet_ids = concat(module.vpc.private_subnet, module.vpc.private_db_subnet_ids)
   desired_size = var.desired_size
   max_size = var.max_size
   min_size = var.min_size
