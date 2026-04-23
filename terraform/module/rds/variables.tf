@@ -6,10 +6,6 @@ variable "password" {}
 
 variable "vpc_id" {}
 
-variable "private_db_subnet_ids" {
-    type = list(string)
-}
-
 variable "private_subnet" {
-  
+  type = list(string)
 }

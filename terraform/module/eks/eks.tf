@@ -27,6 +27,7 @@ resource "aws_iam_policy_attachment" "cluster_policy_attachment" {
 resource "aws_eks_cluster" "titan_eks" {
   name = "${var.project_name}-eks"
   role_arn = aws_iam_role.cluster_role.arn
+  version = "1.35"
   vpc_config {
     subnet_ids =  var.subnet_ids
   }
@@ -113,7 +114,8 @@ resource "aws_eks_node_group" "my_node_group" {
    aws_iam_policy_attachment.node_policy_attachment,
    aws_iam_policy_attachment.node_policy_wnp,
    aws_iam_policy_attachment.node_policy_ec2,
-   aws_iam_policy_attachment.node_policy_ecr
+   aws_iam_policy_attachment.node_policy_ecr,
+    aws_iam_role.node_role,aws_eks_cluster.titan_eks
   ]
   timeouts {
     create = "1h"

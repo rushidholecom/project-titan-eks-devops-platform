@@ -1,0 +1,9 @@
+terraform/backend.hcl
+terraform/.terraform/
+terraform/.terraform/*
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/crash.log
+terraform/crash.*.log
+*.tfstate
+*.tfstate.*
