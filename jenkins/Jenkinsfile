@@ -10,6 +10,7 @@ pipeline {
   parameters {
     booleanParam(name: 'APPLY_TERRAFORM', defaultValue: true, description: 'Run terraform apply before building and deploying the application.')
     string(name: 'TF_VARS_FILE', defaultValue: 'VARS/dev.tfvars', description: 'Terraform variable file path relative to terraform/.')
+    string(name: 'IMAGE_TAG', defaultValue: 'v1', description: 'Docker image tag used for backend/frontend deployment.')
     string(name: 'APP_HOST', defaultValue: 'app.example.com', description: 'Public DNS name for the frontend ingress rule.')
     string(name: 'API_HOST', defaultValue: 'api.example.com', description: 'Public DNS name for the backend ingress rule.')
     string(name: 'BACKEND_IMAGE', defaultValue: 'rushidholecom/rushi-backend:v1', description: 'Full Docker Hub image reference for the backend.')
@@ -19,7 +20,6 @@ pipeline {
   environment {
     TF_IN_AUTOMATION = 'true'
     K8S_NAMESPACE = 'titan'
-    APP_DB = credentials('titan-db-app-creds')
   }
 
   stages {
@@ -65,7 +65,7 @@ pipeline {
       }
     }
 
-    stage('Resolve Infrastructure Outputs') {
+    stage('Fetch Terraform Outputs') {
       steps {
         script {
           env.AWS_REGION = sh(script: 'terraform -chdir=terraform output -raw aws_region', returnStdout: true).trim()
@@ -73,63 +73,64 @@ pipeline {
           env.RDS_ENDPOINT = sh(script: 'terraform -chdir=terraform output -raw rds_endpoint', returnStdout: true).trim()
           env.RDS_PORT = sh(script: 'terraform -chdir=terraform output -raw rds_port', returnStdout: true).trim()
           env.RDS_DB_NAME = sh(script: 'terraform -chdir=terraform output -raw rds_db_name', returnStdout: true).trim()
+          env.IMAGE_TAG = params.IMAGE_TAG.trim()
           env.BACKEND_IMAGE = params.BACKEND_IMAGE.trim()
           env.FRONTEND_IMAGE = params.FRONTEND_IMAGE.trim()
+          if (!env.BACKEND_IMAGE) {
+            env.BACKEND_IMAGE = "rushidholecom/rushi-backend:${env.IMAGE_TAG}"
+          }
+          if (!env.FRONTEND_IMAGE) {
+            env.FRONTEND_IMAGE = "rushidholecom/rushi-frontend:${env.IMAGE_TAG}"
+          }
+          echo "Resolved RDS endpoint: ${env.RDS_ENDPOINT}:${env.RDS_PORT}"
         }
       }
     }
 
     stage('Deploy To EKS') {
       steps {
-        sh '''
-          set -euo pipefail
+        withCredentials([usernamePassword(credentialsId: 'titan-db-app-creds', usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD')]) {
+          sh '''
+            set -euo pipefail
 
-          aws eks update-kubeconfig --region "${AWS_REGION}" --name "${EKS_CLUSTER_NAME}"
+            aws eks update-kubeconfig --region "${AWS_REGION}" --name "${EKS_CLUSTER_NAME}"
 
-          mkdir -p .rendered-k8s
+            rm -rf .rendered-k8s
+            mkdir -p .rendered-k8s
 
-          export RDS_ENDPOINT="${RDS_ENDPOINT}"
-          export RDS_PORT="${RDS_PORT}"
-          export RDS_DB_NAME="${RDS_DB_NAME}"
-          export BACKEND_IMAGE="${BACKEND_IMAGE}"
-          export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
-          export APP_HOST="${APP_HOST}"
-          export API_HOST="${API_HOST}"
-          export DB_USERNAME="${APP_DB_USR}"
-          export DB_PASSWORD="${APP_DB_PSW}"
+            export RDS_ENDPOINT="${RDS_ENDPOINT}"
+            export RDS_PORT="${RDS_PORT}"
+            export RDS_DB_NAME="${RDS_DB_NAME}"
+            export BACKEND_IMAGE="${BACKEND_IMAGE}"
+            export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
+            export APP_HOST="${APP_HOST}"
+            export API_HOST="${API_HOST}"
+            export DB_USERNAME="${DB_USERNAME}"
+            export DB_PASSWORD="${DB_PASSWORD}"
 
-          envsubst < k8s/backend-configmap.yaml > .rendered-k8s/backend-configmap.yaml
-          envsubst < k8s/backend-secret.yaml > .rendered-k8s/backend-secret.yaml
-          envsubst < k8s/backend-deployment.yaml > .rendered-k8s/backend-deployment.yaml
-          envsubst < k8s/frontend-deployment.yaml > .rendered-k8s/frontend-deployment.yaml
-          envsubst < k8s/ingress.yaml > .rendered-k8s/ingress.yaml
+            envsubst < k8s/backend-configmap.yaml > .rendered-k8s/backend-configmap.yaml
+            envsubst < k8s/backend-secret.yaml > .rendered-k8s/backend-secret.yaml
+            envsubst < k8s/backend-deployment.yaml > .rendered-k8s/backend-deployment.yaml
+            envsubst < k8s/frontend-deployment.yaml > .rendered-k8s/frontend-deployment.yaml
+            envsubst < k8s/ingress.yaml > .rendered-k8s/ingress.yaml
 
-          kubectl apply -f k8s/namespace.yaml
-          kubectl apply -f .rendered-k8s/backend-configmap.yaml
-          kubectl apply -f .rendered-k8s/backend-secret.yaml
-          kubectl apply -f .rendered-k8s/backend-deployment.yaml
-          kubectl apply -f k8s/backend-service.yaml
-          kubectl apply -f k8s/backend-hpa.yaml
-          kubectl apply -f .rendered-k8s/frontend-deployment.yaml
-          kubectl apply -f k8s/frontend-service.yaml
-          kubectl apply -f k8s/frontend-hpa.yaml
-          kubectl apply -f .rendered-k8s/ingress.yaml
+            kubectl apply -f k8s/namespace.yaml
+            kubectl apply -f .rendered-k8s/backend-configmap.yaml
+            kubectl apply -f .rendered-k8s/backend-secret.yaml
+            kubectl apply -f .rendered-k8s/backend-deployment.yaml
+            kubectl apply -f k8s/backend-service.yaml
+            kubectl apply -f k8s/backend-hpa.yaml
+            kubectl apply -f .rendered-k8s/frontend-deployment.yaml
+            kubectl apply -f k8s/frontend-service.yaml
+            kubectl apply -f k8s/frontend-hpa.yaml
+            kubectl apply -f .rendered-k8s/ingress.yaml
 
-          kubectl rollout status deployment/titan-backend -n "${K8S_NAMESPACE}" --timeout=5m
-          kubectl rollout status deployment/titan-frontend -n "${K8S_NAMESPACE}" --timeout=5m
-          kubectl get ingress -n "${K8S_NAMESPACE}"
-        '''
+            kubectl rollout status deployment/titan-backend -n "${K8S_NAMESPACE}" --timeout=5m
+            kubectl rollout status deployment/titan-frontend -n "${K8S_NAMESPACE}" --timeout=5m
+            kubectl get ingress -n "${K8S_NAMESPACE}"
+          '''
+        }
       }
-    }
-  }
-
-  post {
-    always {
-      sh '''
-        if [ -d .rendered-k8s ]; then
-          rm -rf .rendered-k8s
-        fi
-      '''
     }
   }
 }
