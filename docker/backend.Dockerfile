@@ -3,7 +3,10 @@ LABEL name="Rushidhole"
 SHELL ["/bin/sh", "-c"]
 USER root
 
-RUN apt update && apt install openjdk-17-jdk git maven -y
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    openjdk-17-jdk git maven &&\
+    rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/rushidholecom/EasyCRUD.git
 
