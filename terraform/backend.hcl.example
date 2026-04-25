@@ -1,4 +1,4 @@
-bucket       = "terraform-state-bucket"
+bucket       = "project-titan-terraform-state-demo"
 key          = "project-titan/dev/terraform.tfstate"
 region       = "eu-west-2"
 encrypt      = true
