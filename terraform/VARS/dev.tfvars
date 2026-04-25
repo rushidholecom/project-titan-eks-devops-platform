@@ -16,7 +16,7 @@ private_database_subnet_cidr       = "198.16.32.0/20"
 # RDS
 db_name  = "titan_db"
 username = "rushi"
-password = "redhat1234"
+password = "redhat123"
 
 # EKS
 desired_size = 1
