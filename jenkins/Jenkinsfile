@@ -129,8 +129,38 @@ pipeline {
             kubectl apply -f k8s/frontend-hpa.yaml
             kubectl apply -f .rendered-k8s/ingress.yaml
 
-            kubectl rollout status deployment/titan-backend -n "${K8S_NAMESPACE}" --timeout=5m
-            kubectl rollout status deployment/titan-frontend -n "${K8S_NAMESPACE}" --timeout=5m
+            kubectl get pods -n "${K8S_NAMESPACE}"
+
+            BACKEND_ROLLOUT_TIMEOUT=10m
+            BACKEND_ROLLOUT_RETRIES=2
+            backend_success=1
+            for attempt in $(seq 1 ${BACKEND_ROLLOUT_RETRIES}); do
+              echo "Backend rollout attempt ${attempt}/${BACKEND_ROLLOUT_RETRIES}"
+              if kubectl rollout status deployment/titan-backend -n "${K8S_NAMESPACE}" --timeout=${BACKEND_ROLLOUT_TIMEOUT}; then
+                backend_success=0
+                break
+              fi
+              if [ "${attempt}" -lt "${BACKEND_ROLLOUT_RETRIES}" ]; then
+                echo "Backend rollout did not complete yet; retrying in 10s..."
+                sleep 10
+              fi
+            done
+            if [ "${backend_success}" -ne 0 ]; then
+              echo "=== BACKEND DIAGNOSTICS ==="
+              kubectl get pods -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-backend -o wide
+              kubectl describe pods -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-backend
+              kubectl logs -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-backend --tail=50 || true
+              exit 1
+            fi
+
+            if ! kubectl rollout status deployment/titan-frontend -n "${K8S_NAMESPACE}" --timeout=5m ; then
+              echo "=== FRONTEND DIAGNOSTICS ==="
+              kubectl get pods -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-frontend -o wide
+              kubectl describe pods -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-frontend
+              kubectl logs -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-frontend --tail=50 || true
+              exit 1
+            fi
+
             kubectl get ingress -n "${K8S_NAMESPACE}"
           '''
         }
