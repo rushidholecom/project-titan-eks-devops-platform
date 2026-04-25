@@ -1,21 +1,23 @@
-FROM node:16-alpine
+FROM node:16-alpine AS builder
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    nginx &&\
-    rm -rf /var/lib/apt/list/*
+RUN apk add --no-cache git
 
-RUN git clone https://github.com/EasyCRUD/frontend.git
+RUN git clone https://github.com/EasyCRUD/frontend.git 
 
-WORKDIR /EasyCRUD/frontend
+WORKDIR /frontend
 
-RUN npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-COPY env .env
+RUN npm run build && \
+    mkdir -p /out && \
+    if [ -d build ]; then cp -r build/. /out/; \
+    elif [ -d dist ]; then cp -r dist/. /out/; \
+    else echo "No frontend build output found" && exit 1; fi
 
-EXPOSE 3000
-ENTRYPOINT [ "npm", "run", "build" ]
+FROM nginx:alpine
 
-RUN systemctl start nginx && systemctl enable nginx
+COPY --from=builder /out/ /usr/share/nginx/html/
 
-COPY dist/* /var/www/html/
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
