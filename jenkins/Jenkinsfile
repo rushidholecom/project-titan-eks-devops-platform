@@ -12,14 +12,13 @@ pipeline {
     string(name: 'TF_VARS_FILE', defaultValue: 'VARS/dev.tfvars', description: 'Terraform variable file path relative to terraform/.')
     string(name: 'APP_HOST', defaultValue: 'app.example.com', description: 'Public DNS name for the frontend ingress rule.')
     string(name: 'API_HOST', defaultValue: 'api.example.com', description: 'Public DNS name for the backend ingress rule.')
-    string(name: 'IMAGE_TAG', defaultValue: '', description: 'Optional image tag override. Defaults to the short Git commit.')
+    string(name: 'BACKEND_IMAGE', defaultValue: 'rushidholecom/rushi-backend:v1', description: 'Full Docker Hub image reference for the backend.')
+    string(name: 'FRONTEND_IMAGE', defaultValue: 'rushidholecom/rushi-frontend:v1', description: 'Full Docker Hub image reference for the frontend.')
   }
 
   environment {
     TF_IN_AUTOMATION = 'true'
     K8S_NAMESPACE = 'titan'
-    BACKEND_REPOSITORY = 'project-titan/backend'
-    FRONTEND_REPOSITORY = 'project-titan/frontend'
     APP_DB = credentials('titan-db-app-creds')
   }
 
@@ -37,7 +36,6 @@ pipeline {
           terraform version
           aws --version
           kubectl version --client
-          docker --version
           envsubst --version
         '''
       }
@@ -75,35 +73,9 @@ pipeline {
           env.RDS_ENDPOINT = sh(script: 'terraform -chdir=terraform output -raw rds_endpoint', returnStdout: true).trim()
           env.RDS_PORT = sh(script: 'terraform -chdir=terraform output -raw rds_port', returnStdout: true).trim()
           env.RDS_DB_NAME = sh(script: 'terraform -chdir=terraform output -raw rds_db_name', returnStdout: true).trim()
-          env.AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
-          env.GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-          env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.GIT_SHA
-          env.BACKEND_IMAGE = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.BACKEND_REPOSITORY}:${env.RESOLVED_IMAGE_TAG}"
-          env.FRONTEND_IMAGE = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.FRONTEND_REPOSITORY}:${env.RESOLVED_IMAGE_TAG}"
+          env.BACKEND_IMAGE = params.BACKEND_IMAGE.trim()
+          env.FRONTEND_IMAGE = params.FRONTEND_IMAGE.trim()
         }
-      }
-    }
-
-    stage('Build And Push Images') {
-      steps {
-        sh '''
-          set -euo pipefail
-
-          aws ecr describe-repositories --repository-names "${BACKEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null 2>&1 || \
-            aws ecr create-repository --repository-name "${BACKEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null
-
-          aws ecr describe-repositories --repository-names "${FRONTEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null 2>&1 || \
-            aws ecr create-repository --repository-name "${FRONTEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null
-
-          aws ecr get-login-password --region "${AWS_REGION}" | \
-            docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-
-          docker build -f docker/backend.Dockerfile -t "${BACKEND_IMAGE}" docker
-          docker build -f docker/frontend.Dockerfile -t "${FRONTEND_IMAGE}" docker
-
-          docker push "${BACKEND_IMAGE}"
-          docker push "${FRONTEND_IMAGE}"
-        '''
       }
     }
 
