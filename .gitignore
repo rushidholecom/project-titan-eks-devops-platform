@@ -7,3 +7,4 @@ terraform/crash.log
 terraform/crash.*.log
 *.tfstate
 *.tfstate.*
+.env
