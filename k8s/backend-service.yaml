@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: titan-backend
+  namespace: titan
+  labels:
+    app.kubernetes.io/name: titan-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: project-titan
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: titan-backend
+    app.kubernetes.io/component: api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
