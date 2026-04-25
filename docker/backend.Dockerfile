@@ -1,4 +1,5 @@
-FROM alpine:3.14
+FROM ubuntu
+
 LABEL name="Rushidhole"
 SHELL ["/bin/sh", "-c"]
 USER root
