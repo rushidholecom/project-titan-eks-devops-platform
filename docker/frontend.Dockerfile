@@ -9,7 +9,7 @@ RUN git clone --depth 1 --branch "${EASYCRUD_REF}" "${EASYCRUD_REPO}" /src
 
 WORKDIR /src/frontend
 
-RUN npm` install && \
+RUN npm install && \
      npm cache clean --force
 
 RUN npm run build && \
