@@ -9,12 +9,13 @@ RUN git clone https://github.com/EasyCRUD/frontend.git
 
 WORKDIR /EasyCRUD/frontend
 
-COPY package*.json ./
-
 RUN npm install
 
-COPY . .
+COPY env .env
 
 EXPOSE 3000
+ENTRYPOINT [ "npm", "run", "build" ]
 
-CMD ["npm", "run", "build"] && npm start
+RUN systemctl start nginx && systemctl enable nginx
+
+COPY dist/* /var/www/html/
