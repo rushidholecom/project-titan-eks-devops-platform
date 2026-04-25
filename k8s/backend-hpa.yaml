@@ -1,0 +1,23 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: titan-backend
+  namespace: titan
+  labels:
+    app.kubernetes.io/name: titan-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: project-titan
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: titan-backend
+  minReplicas: 2
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
