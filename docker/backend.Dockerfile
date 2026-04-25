@@ -1,6 +1,6 @@
 FROM alpine:3.14
 LABEL name="Rushidhole"
-SHELL [ "/bin/bash" ]
+SHELL ["/bin/sh", "-c"]
 USER root
 
 RUN apt update && apt install openjdk-17-jdk git maven -y
