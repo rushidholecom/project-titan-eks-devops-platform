@@ -1,3 +1,8 @@
+# Render this manifest after Terraform creates RDS, for example:
+# export RDS_ENDPOINT=$(terraform -chdir=terraform output -raw rds_endpoint)
+# export RDS_PORT=$(terraform -chdir=terraform output -raw rds_port)
+# export RDS_DB_NAME=$(terraform -chdir=terraform output -raw rds_db_name)
+# envsubst < k8s/backend-configmap.yaml | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,6 +13,6 @@ metadata:
     app.kubernetes.io/component: api
     app.kubernetes.io/part-of: project-titan
 data:
-  DB_HOST: your-rds-endpoint.rds.amazonaws.com
-  DB_PORT: "3306"
-  DB_NAME: student_db
+  DB_HOST: "${RDS_ENDPOINT}"
+  DB_PORT: "${RDS_PORT}"
+  DB_NAME: "${RDS_DB_NAME}"
