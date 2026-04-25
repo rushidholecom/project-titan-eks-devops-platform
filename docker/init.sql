@@ -1,7 +1,4 @@
-CREATE DATABASE IF NOT EXISTS student_db;
-
-CREATE USER 'rushi'@'%' IDENTIFIED BY 'rushi123';
-
-GRANT ALL PRIVILEGES ON student_db.* TO 'rushi'@'%';
-
-FLUSH PRIVILEGES;
+-- Keep schema/table DDL here if needed.
+-- The MariaDB Docker entrypoint already creates the database and user
+-- from MYSQL_DATABASE/MYSQL_USER (or MARIADB_DATABASE/MARIADB_USER),
+-- so avoid CREATE DATABASE / CREATE USER statements in this file.
