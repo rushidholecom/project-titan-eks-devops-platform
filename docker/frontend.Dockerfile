@@ -2,9 +2,9 @@ FROM node:16-alpine AS builder
 
 RUN apk add --no-cache git
 
-RUN git clone https://github.com/EasyCRUD/frontend.git 
+RUN git clone https://github.com/rushidholecom/EasyCRUD.git 
 
-WORKDIR /frontend
+WORKDIR /EasyCRUD/frontend
 
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
