@@ -46,7 +46,7 @@ pipeline {
         sh '''
           #!/bin/bash
           set -euo pipefail
-          terraform -chdir=terraform init
+          terraform -chdir=terraform init -backend-config=backend.hcl
           terraform -chdir=terraform validate
           terraform -chdir=terraform plan -var-file="${TF_VARS_FILE}"
         '''
