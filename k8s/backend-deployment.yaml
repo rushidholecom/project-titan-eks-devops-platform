@@ -39,7 +39,7 @@ spec:
                     app.kubernetes.io/component: api
       containers:
         - name: backend
-          image: rushidholecom/rushi-backend:v1
+          image: "${BACKEND_IMAGE}"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

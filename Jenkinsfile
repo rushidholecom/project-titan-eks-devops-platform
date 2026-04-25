@@ -1,0 +1,163 @@
+pipeline {
+  agent any
+
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    timeout(time: 90, unit: 'MINUTES')
+  }
+
+  parameters {
+    booleanParam(name: 'APPLY_TERRAFORM', defaultValue: true, description: 'Run terraform apply before building and deploying the application.')
+    string(name: 'TF_VARS_FILE', defaultValue: 'VARS/dev.tfvars', description: 'Terraform variable file path relative to terraform/.')
+    string(name: 'APP_HOST', defaultValue: 'app.example.com', description: 'Public DNS name for the frontend ingress rule.')
+    string(name: 'API_HOST', defaultValue: 'api.example.com', description: 'Public DNS name for the backend ingress rule.')
+    string(name: 'IMAGE_TAG', defaultValue: '', description: 'Optional image tag override. Defaults to the short Git commit.')
+  }
+
+  environment {
+    TF_IN_AUTOMATION = 'true'
+    K8S_NAMESPACE = 'titan'
+    BACKEND_REPOSITORY = 'project-titan/backend'
+    FRONTEND_REPOSITORY = 'project-titan/frontend'
+    APP_DB = credentials('titan-db-app-creds')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Verify Toolchain') {
+      steps {
+        sh '''
+          set -e
+          terraform version
+          aws --version
+          kubectl version --client
+          docker --version
+          envsubst --version
+        '''
+      }
+    }
+
+    stage('Terraform Init And Plan') {
+      steps {
+        sh '''
+          set -euo pipefail
+          terraform -chdir=terraform init
+          terraform -chdir=terraform validate
+          terraform -chdir=terraform plan -var-file="${TF_VARS_FILE}"
+        '''
+      }
+    }
+
+    stage('Terraform Apply') {
+      when {
+        expression { return params.APPLY_TERRAFORM }
+      }
+      steps {
+        input message: 'Approve Terraform apply for this build?'
+        sh '''
+          set -euo pipefail
+          terraform -chdir=terraform apply -auto-approve -var-file="${TF_VARS_FILE}"
+        '''
+      }
+    }
+
+    stage('Resolve Infrastructure Outputs') {
+      steps {
+        script {
+          env.AWS_REGION = sh(script: 'terraform -chdir=terraform output -raw aws_region', returnStdout: true).trim()
+          env.EKS_CLUSTER_NAME = sh(script: 'terraform -chdir=terraform output -raw eks_cluster_name', returnStdout: true).trim()
+          env.RDS_ENDPOINT = sh(script: 'terraform -chdir=terraform output -raw rds_endpoint', returnStdout: true).trim()
+          env.RDS_PORT = sh(script: 'terraform -chdir=terraform output -raw rds_port', returnStdout: true).trim()
+          env.RDS_DB_NAME = sh(script: 'terraform -chdir=terraform output -raw rds_db_name', returnStdout: true).trim()
+          env.AWS_ACCOUNT_ID = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+          env.GIT_SHA = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+          env.RESOLVED_IMAGE_TAG = params.IMAGE_TAG?.trim() ? params.IMAGE_TAG.trim() : env.GIT_SHA
+          env.BACKEND_IMAGE = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.BACKEND_REPOSITORY}:${env.RESOLVED_IMAGE_TAG}"
+          env.FRONTEND_IMAGE = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.FRONTEND_REPOSITORY}:${env.RESOLVED_IMAGE_TAG}"
+        }
+      }
+    }
+
+    stage('Build And Push Images') {
+      steps {
+        sh '''
+          set -euo pipefail
+
+          aws ecr describe-repositories --repository-names "${BACKEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null 2>&1 || \
+            aws ecr create-repository --repository-name "${BACKEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null
+
+          aws ecr describe-repositories --repository-names "${FRONTEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null 2>&1 || \
+            aws ecr create-repository --repository-name "${FRONTEND_REPOSITORY}" --region "${AWS_REGION}" >/dev/null
+
+          aws ecr get-login-password --region "${AWS_REGION}" | \
+            docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+          docker build -f docker/backend.Dockerfile -t "${BACKEND_IMAGE}" docker
+          docker build -f docker/frontend.Dockerfile -t "${FRONTEND_IMAGE}" docker
+
+          docker push "${BACKEND_IMAGE}"
+          docker push "${FRONTEND_IMAGE}"
+        '''
+      }
+    }
+
+    stage('Deploy To EKS') {
+      steps {
+        sh '''
+          set -euo pipefail
+
+          aws eks update-kubeconfig --region "${AWS_REGION}" --name "${EKS_CLUSTER_NAME}"
+
+          mkdir -p .rendered-k8s
+
+          export RDS_ENDPOINT="${RDS_ENDPOINT}"
+          export RDS_PORT="${RDS_PORT}"
+          export RDS_DB_NAME="${RDS_DB_NAME}"
+          export BACKEND_IMAGE="${BACKEND_IMAGE}"
+          export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
+          export APP_HOST="${APP_HOST}"
+          export API_HOST="${API_HOST}"
+          export DB_USERNAME="${APP_DB_USR}"
+          export DB_PASSWORD="${APP_DB_PSW}"
+
+          envsubst < k8s/backend-configmap.yaml > .rendered-k8s/backend-configmap.yaml
+          envsubst < k8s/backend-secret.yaml > .rendered-k8s/backend-secret.yaml
+          envsubst < k8s/backend-deployment.yaml > .rendered-k8s/backend-deployment.yaml
+          envsubst < k8s/frontend-deployment.yaml > .rendered-k8s/frontend-deployment.yaml
+          envsubst < k8s/ingress.yaml > .rendered-k8s/ingress.yaml
+
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f .rendered-k8s/backend-configmap.yaml
+          kubectl apply -f .rendered-k8s/backend-secret.yaml
+          kubectl apply -f .rendered-k8s/backend-deployment.yaml
+          kubectl apply -f k8s/backend-service.yaml
+          kubectl apply -f k8s/backend-hpa.yaml
+          kubectl apply -f .rendered-k8s/frontend-deployment.yaml
+          kubectl apply -f k8s/frontend-service.yaml
+          kubectl apply -f k8s/frontend-hpa.yaml
+          kubectl apply -f .rendered-k8s/ingress.yaml
+
+          kubectl rollout status deployment/titan-backend -n "${K8S_NAMESPACE}" --timeout=5m
+          kubectl rollout status deployment/titan-frontend -n "${K8S_NAMESPACE}" --timeout=5m
+          kubectl get ingress -n "${K8S_NAMESPACE}"
+        '''
+      }
+    }
+  }
+
+  post {
+    always {
+      sh '''
+        if [ -d .rendered-k8s ]; then
+          rm -rf .rendered-k8s
+        fi
+      '''
+    }
+  }
+}

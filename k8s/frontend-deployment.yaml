@@ -39,7 +39,7 @@ spec:
                     app.kubernetes.io/component: web
       containers:
         - name: frontend
-          image: rushidholecom/rushi-frontend:v1
+          image: "${FRONTEND_IMAGE}"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
