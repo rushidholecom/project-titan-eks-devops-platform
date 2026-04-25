@@ -5,6 +5,8 @@ RUN apt-get update && \
     nginx &&\
     rm -rf /var/lib/apt/list/*
 
+RUN git clone https://github.com/EasyCRUD/frontend.git
+
 WORKDIR /EasyCRUD/frontend
 
 COPY package*.json ./
