@@ -13,7 +13,7 @@ pipeline {
     string(name: 'IMAGE_TAG', defaultValue: 'v1', description: 'Docker image tag used for backend/frontend deployment.')
     string(name: 'APP_HOST', defaultValue: 'app.example.com', description: 'Public DNS name for the frontend ingress rule.')
     string(name: 'API_HOST', defaultValue: 'api.example.com', description: 'Public DNS name for the backend ingress rule.')
-    string(name: 'BACKEND_IMAGE', defaultValue: 'rushidholecom/rushi-backend:v1', description: 'Full Docker Hub image reference for the backend.')
+    string(name: 'BACKEND_IMAGE', defaultValue: 'rushidholecom/rushi-backend:latest', description: 'Full Docker Hub image reference for the backend.')
     string(name: 'FRONTEND_IMAGE', defaultValue: 'rushidholecom/rushi-frontend:v1', description: 'Full Docker Hub image reference for the frontend.')
   }
 
