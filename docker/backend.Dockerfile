@@ -11,9 +11,9 @@ RUN apt-get update && \
 
 RUN git clone https://github.com/rushidholecom/EasyCRUD.git
 
-WORKDIR /EASYCRUD/backend
+WORKDIR /EasyCRUD/backend
 
-COPY application.properties /EASYCRUD/backend/src/main/resources/application.properties
+COPY application.properties /EasyCRUD/backend/src/main/resources/application.properties
 
 RUN mvn clean package -DskipTests
 
