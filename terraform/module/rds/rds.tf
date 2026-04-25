@@ -7,6 +7,8 @@ resource "aws_db_instance" "titan_rds" {
  instance_class = "db.t3.micro"
  username = var.username
  password = var.password
+ skip_final_snapshot = true
+ delete_automated_backups = true
 #  multi_az = false
  db_subnet_group_name = aws_db_subnet_group.mariadb_subnet_group.name
  vpc_security_group_ids = [aws_security_group.mariadb_security_group.id]
