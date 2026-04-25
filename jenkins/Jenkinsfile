@@ -44,6 +44,7 @@ pipeline {
     stage('Terraform Init And Plan') {
       steps {
         sh '''
+          #!/bin/bash
           set -euo pipefail
           terraform -chdir=terraform init
           terraform -chdir=terraform validate
@@ -59,6 +60,7 @@ pipeline {
       steps {
         input message: 'Approve Terraform apply for this build?'
         sh '''
+          #!/bin/bash
           set -euo pipefail
           terraform -chdir=terraform apply -auto-approve -var-file="${TF_VARS_FILE}"
         '''
@@ -91,6 +93,7 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'titan-db-app-creds', usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD')]) {
           sh '''
+            #!/bin/bash
             set -euo pipefail
 
             aws eks update-kubeconfig --region "${AWS_REGION}" --name "${EKS_CLUSTER_NAME}"
