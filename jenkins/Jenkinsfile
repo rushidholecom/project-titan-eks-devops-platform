@@ -15,6 +15,8 @@ pipeline {
     string(name: 'API_HOST', defaultValue: 'api.example.com', description: 'Public DNS name for the backend ingress rule.')
     string(name: 'BACKEND_IMAGE', defaultValue: 'rushidholecom/rushi-backend:latest', description: 'Full Docker Hub image reference for the backend.')
     string(name: 'FRONTEND_IMAGE', defaultValue: 'rushidholecom/rushi-frontend:v1', description: 'Full Docker Hub image reference for the frontend.')
+    string(name: 'BACKEND_ROLLOUT_TIMEOUT', defaultValue: '10m', description: 'Timeout for backend rollout status checks.')
+    string(name: 'BACKEND_ROLLOUT_RETRIES', defaultValue: '2', description: 'Number of backend rollout retry attempts.')
   }
 
   environment {
@@ -94,7 +96,8 @@ pipeline {
 
     stage('Deploy To EKS') {
       steps {
-        sh '''
+        script {
+          sh '''
             #!/bin/bash
             set -euo pipefail
 
@@ -132,8 +135,8 @@ pipeline {
 
             kubectl get pods -n "${K8S_NAMESPACE}"
 
-            BACKEND_ROLLOUT_TIMEOUT=10m
-            BACKEND_ROLLOUT_RETRIES=2
+            BACKEND_ROLLOUT_TIMEOUT="${BACKEND_ROLLOUT_TIMEOUT:-10m}"
+            BACKEND_ROLLOUT_RETRIES="${BACKEND_ROLLOUT_RETRIES:-2}"
             backend_success=1
             for attempt in $(seq 1 ${BACKEND_ROLLOUT_RETRIES}); do
               echo "Backend rollout attempt ${attempt}/${BACKEND_ROLLOUT_RETRIES}"
