@@ -13,6 +13,18 @@ output "rds_db_name" {
   value       = module.rds.rds_db_name
 }
 
+output "rds_username" {
+  description = "RDS username for backend connection."
+  value       = module.rds.rds_username
+  sensitive   = true
+}
+
+output "rds_password" {
+  description = "RDS password for backend connection."
+  value       = module.rds.rds_password
+  sensitive   = true
+}
+
 output "eks_cluster_name" {
   description = "EKS cluster name for kubectl configuration."
   value       = module.eks.cluster_name

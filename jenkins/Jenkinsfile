@@ -76,6 +76,8 @@ pipeline {
           env.RDS_ENDPOINT = sh(script: 'terraform -chdir=terraform output -raw rds_endpoint', returnStdout: true).trim()
           env.RDS_PORT = sh(script: 'terraform -chdir=terraform output -raw rds_port', returnStdout: true).trim()
           env.RDS_DB_NAME = sh(script: 'terraform -chdir=terraform output -raw rds_db_name', returnStdout: true).trim()
+          env.DB_USERNAME = sh(script: 'terraform -chdir=terraform output -raw rds_username', returnStdout: true).trim()
+          env.DB_PASSWORD = sh(script: 'terraform -chdir=terraform output -raw rds_password', returnStdout: true).trim()
           env.IMAGE_TAG = params.IMAGE_TAG.trim()
           env.BACKEND_IMAGE = params.BACKEND_IMAGE.trim()
           env.FRONTEND_IMAGE = params.FRONTEND_IMAGE.trim()
@@ -92,8 +94,7 @@ pipeline {
 
     stage('Deploy To EKS') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'titan-db-app-creds', usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD')]) {
-          sh '''
+        sh '''
             #!/bin/bash
             set -euo pipefail
 
