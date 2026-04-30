@@ -54,8 +54,13 @@ pipeline {
 
           BACKEND_CONFIG_FILE="${TF_BACKEND_CONFIG_FILE:-backend.hcl}"
           if [ ! -f "terraform/${BACKEND_CONFIG_FILE}" ]; then
-            echo "Backend config file terraform/${BACKEND_CONFIG_FILE} not found"
-            exit 1
+            if [ "${BACKEND_CONFIG_FILE}" = "backend.hcl" ] && [ -f "terraform/backend.hcl.example" ]; then
+              echo "terraform/backend.hcl not found. Falling back to terraform/backend.hcl.example"
+              BACKEND_CONFIG_FILE="backend.hcl.example"
+            else
+              echo "Backend config file terraform/${BACKEND_CONFIG_FILE} not found"
+              exit 1
+            fi
           fi
 
           STATE_BUCKET="$(awk -F'"'=' '/^[[:space:]]*bucket[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); gsub(/"/, "", $2); print $2}' "terraform/${BACKEND_CONFIG_FILE}")"
