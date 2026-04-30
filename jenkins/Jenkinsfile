@@ -62,7 +62,7 @@ if [ ! -f "terraform/${BACKEND_CONFIG_FILE}" ]; then
   fi
 fi
 
-STATE_BUCKET="$(sed -n 's/^[[:space:]]*bucket[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "terraform/${BACKEND_CONFIG_FILE}" | head -n 1)"
+STATE_BUCKET="$(grep -E '^[[:space:]]*bucket[[:space:]]*=' "terraform/${BACKEND_CONFIG_FILE}" | head -n 1 | cut -d'=' -f2- | tr -d ' "')"
 if [ -z "${STATE_BUCKET}" ]; then
   echo "Unable to parse bucket from terraform/${BACKEND_CONFIG_FILE}"
   exit 1
