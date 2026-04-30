@@ -82,7 +82,7 @@ else
   mv terraform/backend.tf.bootstrap-disabled terraform/backend.tf
   trap - EXIT
   rm -rf terraform/.terraform
-  terraform -chdir=terraform init -input=false -migrate-state -force-copy -backend-config="${BACKEND_CONFIG_FILE}"
+  terraform -chdir=terraform init -migrate-state -force-copy -backend-config="${BACKEND_CONFIG_FILE}"
 fi
 
 terraform -chdir=terraform validate
