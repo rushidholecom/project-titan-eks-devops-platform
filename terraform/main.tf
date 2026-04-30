@@ -1,3 +1,24 @@
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.38"
+    }
+
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 3.0"
+    }
+  }
+}
+
 provider "aws" {
   region = var.region
 }
@@ -66,7 +87,7 @@ module "eks" {
   depends_on = [ module.vpc ]
 }
 
-resource "kubernetes_service_account" "aws_load_balancer_controller" {
+resource "kubernetes_service_account_v1" "aws_load_balancer_controller" {
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
@@ -99,7 +120,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "serviceAccount.name"
-    value = kubernetes_service_account.aws_load_balancer_controller.metadata[0].name
+    value = kubernetes_service_account_v1.aws_load_balancer_controller.metadata[0].name
   }
 
   set {
@@ -114,6 +135,6 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   depends_on = [
     module.eks,
-    kubernetes_service_account.aws_load_balancer_controller
+    kubernetes_service_account_v1.aws_load_balancer_controller
   ]
 }
