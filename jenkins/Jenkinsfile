@@ -10,6 +10,7 @@ pipeline {
   parameters {
     booleanParam(name: 'APPLY_TERRAFORM', defaultValue: true, description: 'Run terraform apply before building and deploying the application.')
     string(name: 'TF_VARS_FILE', defaultValue: 'VARS/dev.tfvars', description: 'Terraform variable file path relative to terraform/.')
+    string(name: 'TF_BACKEND_CONFIG_FILE', defaultValue: 'backend.hcl', description: 'Terraform backend config file path relative to terraform/.')
     string(name: 'IMAGE_TAG', defaultValue: 'v1', description: 'Docker image tag used for backend/frontend deployment.')
     string(name: 'APP_HOST', defaultValue: 'app.example.com', description: 'Public DNS name for the frontend ingress rule.')
     string(name: 'API_HOST', defaultValue: 'api.example.com', description: 'Public DNS name for the backend ingress rule.')
@@ -50,8 +51,28 @@ pipeline {
         sh '''
           #!/bin/bash
           set -euo pipefail
-          rm -rf .terraform
-          terraform -chdir=terraform init -backend-config=backend.hcl.example
+
+          BACKEND_CONFIG_FILE="${TF_BACKEND_CONFIG_FILE}"
+          if [ ! -f "terraform/${BACKEND_CONFIG_FILE}" ]; then
+            echo "Backend config file terraform/${BACKEND_CONFIG_FILE} not found"
+            exit 1
+          fi
+
+          STATE_BUCKET="$(awk -F'"'=' '/^[[:space:]]*bucket[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); gsub(/"/, "", $2); print $2}' "terraform/${BACKEND_CONFIG_FILE}")"
+          STATE_REGION="$(awk -F'"'=' '/^[[:space:]]*region[[:space:]]*=/{gsub(/[[:space:]]/, "", $2); gsub(/"/, "", $2); print $2}' "terraform/${BACKEND_CONFIG_FILE}")"
+
+          rm -rf terraform/.terraform
+
+          if aws s3api head-bucket --bucket "${STATE_BUCKET}" >/dev/null 2>&1; then
+            echo "Terraform backend bucket ${STATE_BUCKET} already exists. Initializing remote backend."
+            terraform -chdir=terraform init -input=false -backend-config="${BACKEND_CONFIG_FILE}"
+          else
+            echo "Terraform backend bucket ${STATE_BUCKET} does not exist. Bootstrapping backend locally first."
+            terraform -chdir=terraform init -input=false -backend=false
+            terraform -chdir=terraform apply -input=false -auto-approve -target=module.s3_backend -var-file="${TF_VARS_FILE}"
+            terraform -chdir=terraform init -input=false -migrate-state -force-copy -backend-config="${BACKEND_CONFIG_FILE}"
+          fi
+
           terraform -chdir=terraform validate
           terraform -chdir=terraform plan -var-file="${TF_VARS_FILE}"
         '''
