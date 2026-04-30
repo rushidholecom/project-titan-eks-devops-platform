@@ -52,7 +52,7 @@ pipeline {
           #!/bin/bash
           set -euo pipefail
 
-          BACKEND_CONFIG_FILE="${TF_BACKEND_CONFIG_FILE}"
+          BACKEND_CONFIG_FILE="${TF_BACKEND_CONFIG_FILE:-backend.hcl}"
           if [ ! -f "terraform/${BACKEND_CONFIG_FILE}" ]; then
             echo "Backend config file terraform/${BACKEND_CONFIG_FILE} not found"
             exit 1
