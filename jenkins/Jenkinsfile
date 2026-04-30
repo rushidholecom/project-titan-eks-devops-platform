@@ -69,6 +69,7 @@ if [ -z "${STATE_BUCKET}" ]; then
 fi
 
 rm -rf terraform/.terraform
+rm -f terraform/terraform.tfstate terraform/terraform.tfstate.backup
 
 if aws s3api head-bucket --bucket "${STATE_BUCKET}" >/dev/null 2>&1; then
   echo "Terraform backend bucket ${STATE_BUCKET} already exists. Initializing remote backend."
