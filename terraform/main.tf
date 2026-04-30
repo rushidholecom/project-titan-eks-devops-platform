@@ -60,10 +60,60 @@ module "eks" {
   source = "./module/eks"
   project_name = var.project_name
   subnet_ids = module.vpc.public_subnet_ids
-  vpc_id = module.vpc.vpc_id
-  aws_region = var.region
   desired_size = var.desired_size
   max_size = var.max_size
   min_size = var.min_size
   depends_on = [ module.vpc ]
+}
+
+resource "kubernetes_service_account" "aws_load_balancer_controller" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = module.eks.aws_load_balancer_controller_role_arn
+    }
+    labels = {
+      "app.kubernetes.io/name" = "aws-load-balancer-controller"
+    }
+  }
+
+  depends_on = [module.eks]
+}
+
+resource "helm_release" "aws_load_balancer_controller" {
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+
+  set {
+    name  = "clusterName"
+    value = module.eks.cluster_name
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = kubernetes_service_account.aws_load_balancer_controller.metadata[0].name
+  }
+
+  set {
+    name  = "region"
+    value = var.region
+  }
+
+  set {
+    name  = "vpcId"
+    value = module.vpc.vpc_id
+  }
+
+  depends_on = [
+    module.eks,
+    kubernetes_service_account.aws_load_balancer_controller
+  ]
 }
