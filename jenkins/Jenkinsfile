@@ -17,6 +17,8 @@ pipeline {
     string(name: 'FRONTEND_IMAGE', defaultValue: 'rushidholecom/rushi-frontend:v1', description: 'Full Docker Hub image reference for the frontend.')
     string(name: 'BACKEND_ROLLOUT_TIMEOUT', defaultValue: '10m', description: 'Timeout for backend rollout status checks.')
     string(name: 'BACKEND_ROLLOUT_RETRIES', defaultValue: '2', description: 'Number of backend rollout retry attempts.')
+    string(name: 'ALB_CONTROLLER_TIMEOUT', defaultValue: '10m', description: 'Timeout for AWS Load Balancer Controller rollout checks.')
+    string(name: 'INGRESS_ADDRESS_TIMEOUT_SECONDS', defaultValue: '900', description: 'How long to wait for the ingress ALB address, in seconds.')
   }
 
   environment {
@@ -135,6 +137,16 @@ pipeline {
 
             kubectl get pods -n "${K8S_NAMESPACE}"
 
+            ALB_CONTROLLER_TIMEOUT="${ALB_CONTROLLER_TIMEOUT:-10m}"
+            if ! kubectl rollout status deployment/aws-load-balancer-controller -n kube-system --timeout=${ALB_CONTROLLER_TIMEOUT}; then
+              echo "=== AWS LOAD BALANCER CONTROLLER DIAGNOSTICS ==="
+              kubectl get deployment -n kube-system aws-load-balancer-controller -o wide || true
+              kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller -o wide || true
+              kubectl describe deployment -n kube-system aws-load-balancer-controller || true
+              kubectl logs -n kube-system deployment/aws-load-balancer-controller --tail=100 || true
+              exit 1
+            fi
+
             BACKEND_ROLLOUT_TIMEOUT="${BACKEND_ROLLOUT_TIMEOUT:-10m}"
             BACKEND_ROLLOUT_RETRIES="${BACKEND_ROLLOUT_RETRIES:-2}"
             backend_success=1
@@ -162,6 +174,31 @@ pipeline {
               kubectl get pods -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-frontend -o wide
               kubectl describe pods -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-frontend
               kubectl logs -n "${K8S_NAMESPACE}" -l app.kubernetes.io/name=titan-frontend --tail=50 || true
+              exit 1
+            fi
+
+            INGRESS_ADDRESS_TIMEOUT_SECONDS="${INGRESS_ADDRESS_TIMEOUT_SECONDS:-900}"
+            ingress_address=""
+            deadline=$(( $(date +%s) + INGRESS_ADDRESS_TIMEOUT_SECONDS ))
+            while [ "$(date +%s)" -lt "${deadline}" ]; do
+              ingress_address="$(kubectl get ingress titan-ingress -n "${K8S_NAMESPACE}" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
+              if [ -z "${ingress_address}" ]; then
+                ingress_address="$(kubectl get ingress titan-ingress -n "${K8S_NAMESPACE}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)"
+              fi
+              if [ -n "${ingress_address}" ]; then
+                echo "Ingress address resolved: ${ingress_address}"
+                break
+              fi
+              echo "Waiting for ALB address on titan-ingress..."
+              sleep 15
+            done
+
+            if [ -z "${ingress_address}" ]; then
+              echo "=== INGRESS DIAGNOSTICS ==="
+              kubectl get ingress -n "${K8S_NAMESPACE}" -o wide || true
+              kubectl describe ingress titan-ingress -n "${K8S_NAMESPACE}" || true
+              kubectl get events -n "${K8S_NAMESPACE}" --sort-by=.metadata.creationTimestamp || true
+              kubectl logs -n kube-system deployment/aws-load-balancer-controller --tail=150 || true
               exit 1
             fi
 

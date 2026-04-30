@@ -2,6 +2,30 @@ provider "aws" {
   region = var.region
 }
 
+data "aws_eks_cluster" "this" {
+  name       = module.eks.cluster_name
+  depends_on = [module.eks]
+}
+
+data "aws_eks_cluster_auth" "this" {
+  name       = module.eks.cluster_name
+  depends_on = [module.eks]
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.this.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.this.token
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.this.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.this.token
+  }
+}
+
 module "s3_backend" {
   source      = "./module/s3_backend"
   bucket_name = var.tfstate_bucket_name
@@ -36,6 +60,8 @@ module "eks" {
   source = "./module/eks"
   project_name = var.project_name
   subnet_ids = module.vpc.public_subnet_ids
+  vpc_id = module.vpc.vpc_id
+  aws_region = var.region
   desired_size = var.desired_size
   max_size = var.max_size
   min_size = var.min_size
